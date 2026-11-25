@@ -1,59 +1,291 @@
-# Quang Mỹ OS
-Quang Mỹ OS là hệ điều hành viết bằng Rust.
-Mục tiêu của dự án:
-- Viết lại một hệ điều hành hoàn toàn mới, miễn phí, mạnh mẽ.
-- Khai thác tính an toàn bộ nhớ và concurrency của Rust.
-- Xây dựng micro kernel tối giản, siêu nhỏ.
-- Gói cài đặt siêu nhỏ chỉ có kèm 1 terminal, rồi tùy chức năng mà cài thêm các modules giao diện ứng dụng dùng cho cá nhân, mobile, desktop, server, iot, ai, game.
+# QM OS by Rust Unlicense
 
-## Roadmap
-- [ ] Bootloader cơ bản
-- [ ] Micro Kernel tối giản (xử lý ngắt, quản lý bộ nhớ)
-- [ ] Hệ thống file đơn giản
-- [ ] Driver cơ bản (bàn phím, màn hình)
-- [ ] Shell tối giản
+## Cây thư mục
 
-## Tạm Thời
-- Dùng Iced với tiny skia để tập làm ui, tiny skia dùng sau này.
-- ...
 
-## Microkernel và ý tưởng “3 bản check lẫn nhau”
-Microkernel thuần túy: chỉ giữ các chức năng tối thiểu (IPC, scheduling, memory management) trong kernel; phần còn lại chạy ở user-space.
-Ý tưởng 3 bản kiểm tra lẫn nhau: về lý thuyết, có thể triển khai nhiều kernel instance hoặc domain song song để giám sát nhau, nhưng thực tế hiếm OS nào làm vậy vì chi phí hiệu năng và độ phức tạp.
-Thực tế: các hệ điều hành thường chọn cách cô lập thành phần nhạy cảm (ví dụ Secure Enclave, Exclaves) thay vì nhân bản toàn bộ kernel.
-
-macOS/iOS kernel bảo mật thế nào?
-XNU kernel: hybrid, kết hợp Mach microkernel và BSD monolithic. Mach cung cấp IPC và quản lý bộ nhớ, BSD cung cấp hệ thống file, process, network.
-Secure Enclave: phần cứng riêng biệt trong chip Apple, xử lý khóa mã hóa, Touch ID/Face ID, dữ liệu nhạy cảm.
-SPTM (Secure Page Table Monitor): giới thiệu năm 2023, chạy ở mức đặc quyền cao hơn kernel, kiểm soát việc ánh xạ bộ nhớ, ngăn kernel truy cập tùy tiện.
-TXM (Trusted Execution Monitor): chịu trách nhiệm xác minh code signing và entitlement, chạy tách biệt khỏi XNU.
-Exclaves: các domain cô lập nằm ngoài kernel chính, bảo vệ chức năng quan trọng ngay cả khi kernel bị compromise. Xuất hiện từ iOS 17 và macOS gần đây.
-
-📊 So sánh bảo mật kernel
-Mô hình	Ví dụ	Ưu điểm	Nhược điểm
-Microkernel thuần	Mach 3.0, Minix	Cô lập tốt, dễ kiểm chứng	IPC overhead, hiệu năng thấp
-Hybrid kernel	XNU (macOS/iOS)	Hiệu năng cao, tận dụng BSD	Kernel compromise ảnh hưởng toàn hệ
-Hybrid + compartmentalization	XNU + SPTM, TXM, Exclaves	Tăng bảo mật, cô lập chức năng nhạy cảm	Phức tạp, chưa hoàn toàn microkernel
-
-⚠️ Rủi ro & Thực tế
-Microkernel “3 bản check lẫn nhau” chưa có OS thương mại nào áp dụng vì chi phí quá lớn.
-Apple chọn hướng “compartmentalization” – tách các thành phần nhạy cảm ra khỏi kernel, gần giống microkernel nhưng vẫn giữ hiệu năng của hybrid.
-Xu hướng: các OS hiện đại (Windows, Linux, macOS) đều bổ sung cơ chế bảo mật phần cứng (TPM, Secure Enclave) thay vì nhân bản kernel.
-
-👉 Tóm lại: macOS/iOS không dùng microkernel thuần mà hybrid kernel XNU, nhưng Apple đang tiến gần hơn tới mô hình microkernel bằng cách tách các thành phần nhạy cảm (SPTM, TXM, Exclaves). Ý tưởng “3 kernel check lẫn nhau” chưa được áp dụng thực tế; thay vào đó, các OS chọn cách cô lập chức năng quan trọng để giảm nguy cơ khi kernel bị tấn công.
-
-Bạn có muốn mình phân tích thêm so sánh với Linux (monolithic) và Windows (hybrid + virtualization-based security) để thấy Apple khác biệt thế nào không?
-
-Apple không dùng microkernel thuần túy cho macOS/iOS mà dùng XNU – một hybrid kernel kết hợp Mach (microkernel) và BSD (monolithic). Tuy nhiên, để tăng bảo mật, Apple gần đây đã đưa vào các cơ chế mới như Secure Page Table Monitor (SPTM), Trusted Execution Monitor (TXM) và “exclaves” nhằm cô lập các chức năng nhạy cảm khỏi kernel chính.
-
-(lung tung)
-
-## Tham khảo Rust OS trên YouTube
-Xem thêm tại: [Rust OS trên YouTube](https://www.youtube.com/results?search_query=rust+os)
-[![Rust OS Playlist](https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png)](https://www.youtube.com/playlist?list=PLib6-zlkjfXkdCjQgrZhmfJOWBk_C2FTY)
-[![Rust OS Playlist](https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png)](https://youtube.com/playlist?list=PL980gcR1LE3LBuWuSv2CL28HsfnpC4Qf7)
-
-## ...
+  
+```
+crates/
+├──qm-image
+│   │   Cargo.toml
+│   │   
+│   ├──docs
+│   │   │   0.md
+│   │   │   1.md
+│   │   │   3-demo.md
+│   │   │   lib.md
+│   │   │   
+│   │   └──tests
+│   │           bundle_and_container.md
+│   │           
+│   ├──src
+│   │       bundle.rs
+│   │       container.rs
+│   │       error.rs
+│   │       lib.rs
+│   │       writer.rs
+│   │       
+│   └──tests
+│           bundle_and_container.rs
+│           
+├──qm-kernel
+│   │   Cargo.toml
+│   │   link.ld
+│   │   README.md
+│   │   
+│   ├──docs
+│   │   │   0-custom-container.md
+│   │   │   1-main.md
+│   │   │   2-panic.md
+│   │   │   3-log.md
+│   │   │   link_linker.md
+│   │   │   pha_0.md
+│   │   │   pha_0_1.md
+│   │   │   server.md
+│   │   │   
+│   │   ├──arch
+│   │   ├──boot
+│   │   │   │   0-common.md
+│   │   │   │   0.md
+│   │   │   │   1-mod.md
+│   │   │   │   2-entry.md
+│   │   │   │   3-sbi.md
+│   │   │   │   4-uart.md
+│   │   │   │   dtb.md
+│   │   │   │   initframefs.md
+│   │   │   │   
+│   │   │   ├──common
+│   │   │   │       boot_info.md
+│   │   │   │       container.md
+│   │   │   │       mod.md
+│   │   │   │       
+│   │   │   ├──riscv64
+│   │   │   │       0.md
+│   │   │   │       dtb.md
+│   │   │   │       entry.md
+│   │   │   │       mod.md
+│   │   │   │       sbi.md
+│   │   │   │       uart.md
+│   │   │   │       
+│   │   │   └──x86_64
+│   │   │           entry.md
+│   │   │           mod.md
+│   │   │           stage_0.md
+│   │   │           
+│   │   ├──loader
+│   │   │       container.md
+│   │   │       mod.md
+│   │   │       
+│   │   ├──log
+│   │   │       mod.md
+│   │   │       
+│   │   ├──memory
+│   │   │       mod.md
+│   │   │       
+│   │   ├──scheduler
+│   │   │       mod.md
+│   │   │       
+│   │   └──sync
+│   │           mod.md
+│   │           spinlock.md
+│   │           
+│   ├──src
+│   │   │   boot_stage.rs
+│   │   │   log-.rs
+│   │   │   main.rs
+│   │   │   panic.rs
+│   │   │   
+│   │   ├──arch
+│   │   │   │   mod.rs
+│   │   │   │   
+│   │   │   ├──riscv64
+│   │   │   │   │   csr.rs
+│   │   │   │   │   mod.rs
+│   │   │   │   │   trap.rs
+│   │   │   │   │   
+│   │   │   │   └──paging
+│   │   │   │           mapper.rs
+│   │   │   │           pte.rs
+│   │   │   │           runtime.rs
+│   │   │   │           scheme.rs
+│   │   │   │           table.rs
+│   │   │   │           
+│   │   │   └──x86_64
+│   │   │           sys_regs.rs
+│   │   │           
+│   │   ├──boot
+│   │   │   │   mod.rs
+│   │   │   │   
+│   │   │   ├──aarch64
+│   │   │   ├──common
+│   │   │   │       boot_info.rs
+│   │   │   │       container.rs
+│   │   │   │       mod.rs
+│   │   │   │       
+│   │   │   ├──riscv64
+│   │   │   │       dtb.rs
+│   │   │   │       entry.rs
+│   │   │   │       sbi.rs
+│   │   │   │       uart.rs
+│   │   │   │       
+│   │   │   └──x86_64
+│   │   │           entry.rs
+│   │   │           mod.rs
+│   │   │           paging.rs
+│   │   │           pat.rs
+│   │   │           pcid.rs
+│   │   │           stage_0.rs
+│   │   │           w_x.rs
+│   │   │           
+│   │   ├──loader
+│   │   │       mod.rs
+│   │   │       
+│   │   ├──log
+│   │   │   │   mod.rs
+│   │   │   │   
+│   │   │   └──x86_64
+│   │   │           io_com1.rs
+│   │   │           
+│   │   ├──memory
+│   │   │       frame.rs
+│   │   │       mod.rs
+│   │   │       
+│   │   ├──scheduler
+│   │   │       mod.rs
+│   │   │       
+│   │   ├──sync
+│   │   │       mod.rs
+│   │   │       spinlock.rs
+│   │   │       
+│   │   └──syscall
+│   │           mod.rs
+│   │           
+│   └──tests
+│       └──boot
+│           ├──riscv64
+│           │       sv39_math.rs
+│           │       
+│           └──x86_64
+│                   stage_0_0_paging_math.rs
+│                   stage_0_1_page_table_builder.rs
+│                   stage_0_2_boot_memory_layout.rs
+│                   stage_0_3_boot_mapping_plan.rs
+│                   stage_0_4_apply_plan_to_tables.rs
+│                   
+├──qm-shell
+│   │   Cargo.toml
+│   │   
+│   └──src
+│           lib.rs
+│           main.rs
+│           window_manager.rs
+│           
+├──qm-sys
+│   │   Cargo.toml
+│   │   
+│   ├──docs
+│   │       0-sys.md
+│   │       1-types.md
+│   │       10-container.md
+│   │       10-vdso.md
+│   │       11-syscall.md
+│   │       2-rights.md
+│   │       3-handle.md
+│   │       4-error.md
+│   │       5-signals.md
+│   │       6-memobj.md
+│   │       7-channel.md
+│   │       8-process.md
+│   │       9-bootinfo.md
+│   │       
+│   ├──src
+│   │   │   bootinfo.rs
+│   │   │   channel.rs
+│   │   │   error.rs
+│   │   │   handle.rs
+│   │   │   lib.rs
+│   │   │   memobj.rs
+│   │   │   process.rs
+│   │   │   rights.rs
+│   │   │   signals.rs
+│   │   │   syscall.rs
+│   │   │   types.rs
+│   │   │   
+│   │   └──container
+│   │           bootstrap.rs
+│   │           header.rs
+│   │           mod.rs
+│   │           segment.rs
+│   │           
+│   └──tests
+│           integration_tests.rs
+│           
+├──qm-ui
+│   │   Cargo.toml
+│   │   
+│   └──src
+│           lib.rs
+│           
+├──qm-web
+│   │   Cargo.toml
+│   │   index.html
+│   │   README.md
+│   │   Trunk.toml
+│   │   
+│   ├──icons
+│   │       quangmy-192x192.png
+│   │       quangmy-512x512.png
+│   │       
+│   ├──src
+│   │       main.rs
+│   │       
+│   └──static
+│           qm-web-compositor.js
+│           qm-web-init-worker.js
+│           qm-web-kernel-worker.js
+│           
+├──qm-web-kernel
+│   │   Cargo.toml
+│   │   index.html
+│   │   Trunk.toml
+│   │   
+│   └──src
+│           main.rs
+│           wasm_bridge.rs
+│           
+├──qm-web-sys
+│   │   Cargo.toml
+│   │   
+│   └──src
+│           compositor.rs
+│           lib.rs
+│           sab.rs
+│           
+├──qm-xtask
+│   │   Cargo.toml
+│   │   
+│   ├──docs
+│   │       0.md
+│   │       main.md
+│   │       run.md
+│   │       
+│   └──src
+│       │   bundle.rs
+│       │   main.rs
+│       │   
+│       └──arch
+│               mod.rs
+│               riscv64.rs
+│               x86_64.rs
+│               
+└──qm-zerox
+    │   Cargo.toml
+    │   
+    └──src
+            lib.rs
+            lib2.rs
+            
+```
 
 ## License
 [Unlicense](LICENSE).
